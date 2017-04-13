@@ -28,6 +28,7 @@ import javax.management.InstanceNotFoundException;
 import javax.management.IntrospectionException;
 import javax.management.InvalidAttributeValueException;
 import javax.management.ListenerNotFoundException;
+import javax.management.MBeanAttributeInfo;
 import javax.management.MBeanException;
 import javax.management.MBeanInfo;
 import javax.management.MBeanRegistrationException;
@@ -197,6 +198,21 @@ public class JolokiaMBeanServerConnection implements MBeanServerConnection {
 	@Override
 	public AttributeList getAttributes(ObjectName name, String[] attributes)
 			throws InstanceNotFoundException, ReflectionException, IOException {
+		String[] attributeTypes = new String[attributes.length];
+		try {
+			MBeanInfo mBeanInfo = getMBeanInfo(name);
+			for(int i =0;i <attributes.length; i++){
+				for(MBeanAttributeInfo attriuteInfo : mBeanInfo.getAttributes()){
+					if(attributes[i].equals(attriuteInfo.getName())){
+						attributeTypes[i] = attriuteInfo.getType();
+					}
+				}
+			}
+		} catch (IntrospectionException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
 		AttributeList al = new AttributeList();
 		J4pReadRequest req = new J4pReadRequest(name, attributes);
 		Object resp2 = null;
@@ -208,6 +224,13 @@ public class JolokiaMBeanServerConnection implements MBeanServerConnection {
 		if( resp2 != null ) {
 			if( resp2 instanceof List) {
 				List<J4pResponse<J4pReadRequest>> resp = (List<J4pResponse<J4pReadRequest>>)resp2;
+				for(int i = 0; i < resp.size(); i++){
+					J4pResponse<J4pReadRequest> r2 = resp.get(i);
+					Object v = r2.getValue();
+					if(Integer.class.getName().equals(attributeTypes[i])){
+						al.add(((Long)v).intValue());
+					}
+				}
 				Iterator<J4pResponse<J4pReadRequest>> c = resp.iterator();
 				while(c.hasNext()) {
 					J4pResponse<J4pReadRequest> r2 = c.next();
@@ -216,7 +239,11 @@ public class JolokiaMBeanServerConnection implements MBeanServerConnection {
 				}
 			} else if( resp2 instanceof J4pReadResponse){
 				Object o22 = ((J4pReadResponse)(resp2)).getValue();
-				al.add(o22);
+				if(Integer.class.getName().equals(attributeTypes[0])){
+					al.add(((Long)o22).intValue());
+				} else {
+					al.add(o22);
+				}
 			}
 		}
 		return al;
@@ -231,6 +258,9 @@ public class JolokiaMBeanServerConnection implements MBeanServerConnection {
 		J4pExecRequest req = createJ4pExecRequest(name, params, operationNameWithSignature);
 		try {
 			J4pExecResponse resp = j4pClient.execute(req);
+			if(operationName.contains("flight")){
+				return ((Long)resp.getValue()).intValue();
+			}
 			return resp.getValue();
 		} catch (J4pException e) {
 			throw new IOException(e);
