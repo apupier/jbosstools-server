@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.wst.common.project.facet.core.facets">
+      <project-facet
+            id="jst.springboot">
+         <label>
+            SpringBoot
+         </label>
+         <description>
+            Adds support for SpringBoot to the project.
+         </description>
+         <default-version
+               version="1.0">
+         </default-version>
+      </project-facet>
+      <project-facet-version
+            facet="jst.springboot"
+            version="1.0">
+      </project-facet-version>
+   </extension>
+   <extension
+         point="org.eclipse.wst.common.project.facet.core.detectors">
+      <detector
+            class="org.jboss.ide.eclipse.as.springboot.internal.SpringBootProjectFacetDetector">
+      </detector>
+   </extension>
+   <extension
+         point="org.eclipse.m2e.core.projectConfigurators">
+      <configurator
+            class="org.jboss.ide.eclipse.as.springboot.internal.SpringBootMavenProjectConfigurator"
+            id="org.jboss.ide.eclipse.as.springboot.configurator"
+            name="SpringBoot configurator"
+            runsAfter="org.eclipse.m2e.jdt.javaConfigurator,org.maven.ide.eclipse.configuration.wtp.configurator?">
+      </configurator>
+   </extension>
+
+</plugin>
